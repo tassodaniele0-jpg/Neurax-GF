@@ -148,21 +148,74 @@ export function Avatar(props) {
 
     // Handle audio - works with or without audio data
     if (message.audio) {
-      // Audio is available - play it
+      // Audio is available from backend - play it
       const audio = new Audio("data:audio/mp3;base64," + message.audio);
       audio.play();
       setAudio(audio);
       audio.onended = onMessagePlayed;
     } else {
-      // No audio available - just show animations and auto-advance after delay
-      console.log("No audio available - showing animations only");
+      // No audio from backend - use Web Speech API (browser native TTS)
+      console.log("Using Web Speech API for TTS");
       setAudio(null);
-      // Auto-advance to next message after a reasonable delay (based on text length)
-      const textLength = message.text.length;
-      const readingTime = Math.max(2000, textLength * 50); // 50ms per character, minimum 2 seconds
-      setTimeout(() => {
-        onMessagePlayed();
-      }, readingTime);
+
+      if ('speechSynthesis' in window) {
+        // Clean text for better speech (remove emojis and special chars)
+        const cleanText = message.text.replace(/[😊😢😍🥺💖🌸✨💕😘🎀💋🌹💫🦋🌺💝🎉🔥💎⭐🌙💜❤️💛💚💙🧡🤍🖤💗💓💕💖💘💝💟❣️💌💤💢💬💭🗯️💯💫⭐🌟✨💥💨💦💧💤👁️‍🗨️🗨️💬💭🗯️]/g, '')
+                                    .replace(/[^\w\s.,!?;:'"()-]/g, '')
+                                    .trim();
+
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+
+        // Configure voice settings for a more natural female voice
+        utterance.rate = 0.9; // Slightly slower for more natural speech
+        utterance.pitch = 1.2; // Higher pitch for feminine voice
+        utterance.volume = 0.8;
+
+        // Try to find a female voice
+        const voices = speechSynthesis.getVoices();
+        const femaleVoice = voices.find(voice =>
+          voice.name.toLowerCase().includes('female') ||
+          voice.name.toLowerCase().includes('woman') ||
+          voice.name.toLowerCase().includes('zira') ||
+          voice.name.toLowerCase().includes('hazel') ||
+          voice.name.toLowerCase().includes('susan') ||
+          voice.name.toLowerCase().includes('samantha') ||
+          voice.lang.startsWith('en') && voice.name.toLowerCase().includes('f')
+        );
+
+        if (femaleVoice) {
+          utterance.voice = femaleVoice;
+          console.log(`Using voice: ${femaleVoice.name}`);
+        } else {
+          console.log("Using default voice");
+        }
+
+        utterance.onend = () => {
+          console.log("Speech synthesis completed");
+          onMessagePlayed();
+        };
+
+        utterance.onerror = (event) => {
+          console.error("Speech synthesis error:", event.error);
+          // Fallback to timer if speech fails
+          const textLength = cleanText.length;
+          const readingTime = Math.max(2000, textLength * 50);
+          setTimeout(() => {
+            onMessagePlayed();
+          }, readingTime);
+        };
+
+        // Start speaking
+        speechSynthesis.speak(utterance);
+      } else {
+        // Fallback for browsers without speech synthesis
+        console.log("Speech synthesis not supported - using timer");
+        const textLength = message.text.length;
+        const readingTime = Math.max(2000, textLength * 50);
+        setTimeout(() => {
+          onMessagePlayed();
+        }, readingTime);
+      }
     }
   }, [message]);
 
@@ -213,6 +266,35 @@ export function Avatar(props) {
   const [winkRight, setWinkRight] = useState(false);
   const [facialExpression, setFacialExpression] = useState("");
   const [audio, setAudio] = useState();
+  const [speechVoices, setSpeechVoices] = useState([]);
+
+  // Load available speech synthesis voices
+  useEffect(() => {
+    if ('speechSynthesis' in window) {
+      const loadVoices = () => {
+        const voices = speechSynthesis.getVoices();
+        setSpeechVoices(voices);
+        console.log(`Loaded ${voices.length} speech synthesis voices`);
+
+        // Log available female voices for debugging
+        const femaleVoices = voices.filter(voice =>
+          voice.name.toLowerCase().includes('female') ||
+          voice.name.toLowerCase().includes('woman') ||
+          voice.name.toLowerCase().includes('zira') ||
+          voice.name.toLowerCase().includes('hazel') ||
+          voice.name.toLowerCase().includes('susan') ||
+          voice.name.toLowerCase().includes('samantha')
+        );
+        console.log('Available female voices:', femaleVoices.map(v => v.name));
+      };
+
+      // Load voices immediately
+      loadVoices();
+
+      // Also load when voices change (some browsers load them asynchronously)
+      speechSynthesis.onvoiceschanged = loadVoices;
+    }
+  }, []);
 
   useFrame(() => {
     !setupMode &&
