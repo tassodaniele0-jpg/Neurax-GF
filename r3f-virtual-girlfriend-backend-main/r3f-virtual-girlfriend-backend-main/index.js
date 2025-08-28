@@ -21,10 +21,23 @@ const openai = new OpenAI({
 
 // Note: We use direct fetch for ElevenLabs API instead of the buggy elevenlabs-node library
 
-// Improved text-to-speech function using OpenAI library
+// Improved text-to-speech function using direct fetch
 async function generateSpeech(text, fileName) {
   try {
     console.log(`Generating audio for: "${text.substring(0, 50)}..."`);
+    console.log(`Using API key: ${process.env.ELEVEN_LABS_API_KEY ? 'PRESENT' : 'MISSING'}`);
+    console.log(`Using voice ID: ${process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM'}`);
+
+    const requestBody = {
+      text: text,
+      model_id: 'eleven_monolingual_v1',
+      voice_settings: {
+        stability: 0.5,
+        similarity_boost: 0.5
+      }
+    };
+
+    console.log(`Request body:`, JSON.stringify(requestBody, null, 2));
 
     const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_VOICE_ID || '21m00Tcm4TlvDq8ikWAM'}`, {
       method: 'POST',
@@ -33,25 +46,23 @@ async function generateSpeech(text, fileName) {
         'Content-Type': 'application/json',
         'xi-api-key': process.env.ELEVEN_LABS_API_KEY
       },
-      body: JSON.stringify({
-        text: text,
-        model_id: 'eleven_monolingual_v1',
-        voice_settings: {
-          stability: 0.5,
-          similarity_boost: 0.5
-        }
-      })
+      body: JSON.stringify(requestBody)
     });
 
+    console.log(`Response status: ${response.status} ${response.statusText}`);
+    console.log(`Response headers:`, Object.fromEntries(response.headers.entries()));
+
     if (!response.ok) {
-      throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text();
+      console.error(`ElevenLabs API error response:`, errorText);
+      throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 
     await fs.writeFile(fileName, buffer);
-    console.log(`Audio saved to: ${fileName}`);
+    console.log(`Audio saved to: ${fileName} (${buffer.length} bytes)`);
     return true;
   } catch (error) {
     console.error('Error generating speech:', error);
