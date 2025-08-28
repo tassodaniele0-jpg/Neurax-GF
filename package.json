@@ -1,0 +1,30 @@
+{
+  "name": "neurax-gf-for-all",
+  "version": "1.0.0",
+  "description": "NEURAX GF FOR ALL - Virtual Girlfriend with AI and 3D Avatar",
+  "main": "index.js",
+  "scripts": {
+    "install-backend": "cd r3f-virtual-girlfriend-backend-main/r3f-virtual-girlfriend-backend-main && npm install",
+    "install-frontend": "cd r3f-virtual-girlfriend-frontend-main/r3f-virtual-girlfriend-frontend-main && npm install",
+    "build-frontend": "cd r3f-virtual-girlfriend-frontend-main/r3f-virtual-girlfriend-frontend-main && npm run build",
+    "start-backend": "cd r3f-virtual-girlfriend-backend-main/r3f-virtual-girlfriend-backend-main && node index.js",
+    "dev-backend": "cd r3f-virtual-girlfriend-backend-main/r3f-virtual-girlfriend-backend-main && npm run dev",
+    "dev-frontend": "cd r3f-virtual-girlfriend-frontend-main/r3f-virtual-girlfriend-frontend-main && npm run dev",
+    "deploy": "render-cli\\cli_v2.1.4.exe services create --from-file render.yaml"
+  },
+  "keywords": [
+    "virtual-girlfriend",
+    "ai",
+    "3d-avatar",
+    "neurax",
+    "elevenlabs",
+    "openrouter",
+    "threejs",
+    "react"
+  ],
+  "author": "NEURAX",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
