@@ -23,8 +23,9 @@ services:
     healthCheckPath: /health
 
   # Frontend Service (Static Site)
-  - type: static
+  - type: web
     name: neurax-gf-frontend
+    runtime: static
     buildCommand: cd r3f-virtual-girlfriend-frontend-main/r3f-virtual-girlfriend-frontend-main && npm install && npm run build
     staticPublishPath: r3f-virtual-girlfriend-frontend-main/r3f-virtual-girlfriend-frontend-main/dist
     envVars:
