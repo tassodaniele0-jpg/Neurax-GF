@@ -266,36 +266,11 @@ app.post("/chat", async (req, res) => {
     const message = messages[i];
 
     // Try to generate audio file (optional - app works without audio)
-    try {
-      if (elevenLabsApiKey && elevenLabsApiKey !== "XXX") {
-        const fileName = `audios/message_${i}.mp3`;
-        const textInput = message.text;
-
-        console.log(`Generating audio for message ${i} with voice ${voiceID}...`);
-        const audioGenerated = await generateSpeech(textInput, fileName);
-
-        if (audioGenerated) {
-          // Generate lipsync (requires FFmpeg)
-          await lipSyncMessage(i);
-          message.audio = await audioFileToBase64(fileName);
-          message.lipsync = await readJsonTranscript(`audios/message_${i}.json`);
-          console.log(`Audio and lipsync generated successfully for message ${i}`);
-        } else {
-          console.log(`Failed to generate audio for message ${i}`);
-          message.audio = null;
-          message.lipsync = null;
-        }
-      } else {
-        console.log("ElevenLabs API key not configured - skipping audio generation");
-        message.audio = null;
-        message.lipsync = null;
-      }
-    } catch (error) {
-      console.error(`Error generating audio for message ${i}:`, error.message);
-      // App continues to work without audio
-      message.audio = null;
-      message.lipsync = null;
-    }
+    // Note: ElevenLabs Free Tier has been disabled due to "unusual activity"
+    // The app works perfectly without audio - users can still chat with the AI girlfriend
+    console.log(`Skipping audio generation for message ${i} - ElevenLabs Free Tier disabled`);
+    message.audio = null;
+    message.lipsync = null;
   }
 
   res.send({ messages });
