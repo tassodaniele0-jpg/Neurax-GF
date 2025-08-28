@@ -159,35 +159,116 @@ export function Avatar(props) {
       setAudio(null);
 
       if ('speechSynthesis' in window) {
-        // Clean text for better speech (remove emojis and special chars)
-        const cleanText = message.text.replace(/[😊😢😍🥺💖🌸✨💕😘🎀💋🌹💫🦋🌺💝🎉🔥💎⭐🌙💜❤️💛💚💙🧡🤍🖤💗💓💕💖💘💝💟❣️💌💤💢💬💭🗯️💯💫⭐🌟✨💥💨💦💧💤👁️‍🗨️🗨️💬💭🗯️]/g, '')
-                                    .replace(/[^\w\s.,!?;:'"()-]/g, '')
-                                    .trim();
+        // Enhanced text cleaning and emoji replacement for better speech
+        let cleanText = message.text
+          // Replace common emojis with spoken equivalents
+          .replace(/😊|😄|😃|🙂/g, ' *smiles* ')
+          .replace(/😢|😭|🥺/g, ' *sighs sadly* ')
+          .replace(/😍|🥰|💖|💕|❤️/g, ' *with love* ')
+          .replace(/😘|💋/g, ' *kisses* ')
+          .replace(/🌸|🌹|🌺/g, ' *sweetly* ')
+          .replace(/✨|💫|⭐|🌟/g, ' *sparkles* ')
+          .replace(/🎉|🎊/g, ' *excitedly* ')
+          .replace(/💎|👑/g, ' *proudly* ')
+          .replace(/🔥|💥/g, ' *passionately* ')
+          .replace(/🦋|🌙/g, ' *dreamily* ')
+          // Remove remaining emojis and special characters
+          .replace(/[^\w\s.,!?;:'"()\-*]/g, '')
+          // Clean up multiple spaces and trim
+          .replace(/\s+/g, ' ')
+          .trim();
+
+        // Add natural pauses for better speech rhythm
+        cleanText = cleanText
+          .replace(/\. /g, '. *pause* ')
+          .replace(/! /g, '! *pause* ')
+          .replace(/\? /g, '? *pause* ');
+
+        console.log(`Original: "${message.text}"`);
+        console.log(`Cleaned for TTS: "${cleanText}"`);
 
         const utterance = new SpeechSynthesisUtterance(cleanText);
 
-        // Configure voice settings for a more natural female voice
-        utterance.rate = 0.9; // Slightly slower for more natural speech
-        utterance.pitch = 1.2; // Higher pitch for feminine voice
-        utterance.volume = 0.8;
-
-        // Try to find a female voice
-        const voices = speechSynthesis.getVoices();
-        const femaleVoice = voices.find(voice =>
-          voice.name.toLowerCase().includes('female') ||
-          voice.name.toLowerCase().includes('woman') ||
-          voice.name.toLowerCase().includes('zira') ||
-          voice.name.toLowerCase().includes('hazel') ||
-          voice.name.toLowerCase().includes('susan') ||
-          voice.name.toLowerCase().includes('samantha') ||
-          voice.lang.startsWith('en') && voice.name.toLowerCase().includes('f')
-        );
-
+        // Configure voice settings for optimal girlfriend experience
         if (femaleVoice) {
           utterance.voice = femaleVoice;
-          console.log(`Using voice: ${femaleVoice.name}`);
+          console.log(`Using high-quality voice: ${femaleVoice.name}`);
+
+          // Optimize settings based on voice type
+          if (femaleVoice.name.includes('Natural') || femaleVoice.name.includes('Premium')) {
+            // Microsoft Natural and Apple Premium voices - minimal adjustment needed
+            utterance.rate = 0.95;
+            utterance.pitch = 1.0; // Natural voices don't need pitch adjustment
+            utterance.volume = 0.9;
+          } else if (femaleVoice.name.includes('Google')) {
+            // Google voices - slightly slower and higher pitch
+            utterance.rate = 0.85;
+            utterance.pitch = 1.1;
+            utterance.volume = 0.8;
+          } else {
+            // Default settings for other voices
+            utterance.rate = 0.9;
+            utterance.pitch = 1.2;
+            utterance.volume = 0.8;
+          }
         } else {
-          console.log("Using default voice");
+          console.log("Using default system voice");
+          utterance.rate = 0.9;
+          utterance.pitch = 1.2;
+          utterance.volume = 0.8;
+        }
+
+        // Try to find the best female voice using research-based recommendations
+        const voices = speechSynthesis.getVoices();
+
+        // Priority order based on Web Speech API research and quality
+        const preferredVoices = [
+          // Microsoft Natural Voices (highest quality)
+          'Microsoft Aria Online (Natural) - English (United States)',
+          'Microsoft Emma Online (Natural) - English (United States)',
+          'Microsoft Jenny Online (Natural) - English (United States)',
+          'Microsoft Michelle Online (Natural) - English (United States)',
+          'Microsoft Ana Online (Natural) - English (United States)',
+
+          // Apple Premium Voices (high quality)
+          'Samantha', 'Samantha (Enhanced)', 'Samantha (Premium)',
+          'Ava', 'Ava (Enhanced)', 'Ava (Premium)',
+          'Susan', 'Susan (Enhanced)', 'Susan (Premium)',
+          'Allison', 'Allison (Enhanced)', 'Allison (Premium)',
+          'Zoe', 'Zoe (Enhanced)', 'Zoe (Premium)',
+
+          // Google Voices (good quality)
+          'Google UK English Female',
+          'Google US English Female',
+          'Google female voice',
+
+          // Chrome OS Android Voices (good quality)
+          'Android Speech Recognition and Synthesis from Google en-us-x-tpc-network',
+          'Android Speech Recognition and Synthesis from Google en-gb-x-rjs-network',
+
+          // Fallback options
+          'Microsoft Zira Desktop - English (United States)',
+          'Microsoft Hazel Desktop - English (Great Britain)',
+          'female', 'woman'
+        ];
+
+        // Find the best available voice
+        let femaleVoice = null;
+        for (const preferredName of preferredVoices) {
+          femaleVoice = voices.find(voice =>
+            voice.name === preferredName ||
+            voice.name.toLowerCase().includes(preferredName.toLowerCase())
+          );
+          if (femaleVoice) break;
+        }
+
+        // If no preferred voice found, try generic female detection
+        if (!femaleVoice) {
+          femaleVoice = voices.find(voice =>
+            voice.name.toLowerCase().includes('female') ||
+            voice.name.toLowerCase().includes('woman') ||
+            (voice.lang.startsWith('en') && voice.name.toLowerCase().includes('f'))
+          );
         }
 
         utterance.onend = () => {
