@@ -145,10 +145,25 @@ export function Avatar(props) {
     setAnimation(message.animation);
     setFacialExpression(message.facialExpression);
     setLipsync(message.lipsync);
-    const audio = new Audio("data:audio/mp3;base64," + message.audio);
-    audio.play();
-    setAudio(audio);
-    audio.onended = onMessagePlayed;
+
+    // Handle audio - works with or without audio data
+    if (message.audio) {
+      // Audio is available - play it
+      const audio = new Audio("data:audio/mp3;base64," + message.audio);
+      audio.play();
+      setAudio(audio);
+      audio.onended = onMessagePlayed;
+    } else {
+      // No audio available - just show animations and auto-advance after delay
+      console.log("No audio available - showing animations only");
+      setAudio(null);
+      // Auto-advance to next message after a reasonable delay (based on text length)
+      const textLength = message.text.length;
+      const readingTime = Math.max(2000, textLength * 50); // 50ms per character, minimum 2 seconds
+      setTimeout(() => {
+        onMessagePlayed();
+      }, readingTime);
+    }
   }, [message]);
 
   const { animations } = useGLTF("/models/animations.glb");
