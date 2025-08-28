@@ -37,6 +37,11 @@ const currentModel = process.env.OPENROUTER_MODEL || OPENROUTER_CONFIG.DEFAULT_M
 const modelSettings = getModelSettings(currentModel);
 
 const app = express();
+
+// Ensure audios directory exists
+fs.mkdir('audios', { recursive: true })
+  .then(() => console.log('Audios directory ready'))
+  .catch(error => console.warn('Could not create audios directory:', error.message));
 app.use(express.json());
 app.use(cors({
   origin: process.env.NODE_ENV === 'production'
