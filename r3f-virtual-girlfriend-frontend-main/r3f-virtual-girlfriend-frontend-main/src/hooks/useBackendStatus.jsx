@@ -15,12 +15,20 @@ export const useBackendStatus = () => {
   const checkStatus = async () => {
     try {
       setStatus(prev => ({ ...prev, loading: true, error: null }));
-      
-      const response = await fetch(`${backendUrl}/health`);
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+
+      const response = await fetch(`${backendUrl}/health`, {
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
-      
+
       const data = await response.json();
       setStatus({
         isOnline: true,
@@ -31,13 +39,14 @@ export const useBackendStatus = () => {
         error: null
       });
     } catch (error) {
+      const errorMessage = error.name === 'AbortError' ? 'Backend sleeping/timeout' : error.message;
       setStatus({
         isOnline: false,
         model: null,
         hasOpenRouterKey: false,
         hasElevenLabsKey: false,
         loading: false,
-        error: error.message
+        error: errorMessage
       });
     }
   };

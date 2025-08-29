@@ -7,15 +7,44 @@ const ChatContext = createContext();
 export const ChatProvider = ({ children }) => {
   const chat = async (message) => {
     setLoading(true);
-    const data = await fetch(`${backendUrl}/chat`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ message }),
-    });
-    const resp = (await data.json()).messages;
-    setMessages((messages) => [...messages, ...resp]);
+    try {
+      const data = await fetch(`${backendUrl}/chat`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ message }),
+      });
+
+      if (!data.ok) {
+        throw new Error(`HTTP ${data.status}: ${data.statusText}`);
+      }
+
+      const resp = (await data.json()).messages;
+      setMessages((messages) => [...messages, ...resp]);
+    } catch (error) {
+      console.error('Backend error:', error);
+
+      // Fallback response when backend is down
+      const fallbackResponses = [
+        {
+          text: "I'm sorry darling, I'm having some connection issues right now... 💔",
+          facialExpression: "sad",
+          animation: "Crying",
+          audio: null,
+          lipsync: null
+        },
+        {
+          text: "But I'm still here with you! Try again in a moment, my love. ❤️",
+          facialExpression: "smile",
+          animation: "Talking_1",
+          audio: null,
+          lipsync: null
+        }
+      ];
+
+      setMessages((messages) => [...messages, ...fallbackResponses]);
+    }
     setLoading(false);
   };
   const [messages, setMessages] = useState([]);
