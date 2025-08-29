@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognition';
 
-const VoiceInput = ({ onVoiceInput, isListening, setIsListening }) => {
+const VoiceInput = ({ onVoiceInput, isListening, setIsListening, compact = false }) => {
   const [isSupported, setIsSupported] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
   const [error, setError] = useState(null);
@@ -68,11 +68,32 @@ const VoiceInput = ({ onVoiceInput, isListening, setIsListening }) => {
 
   // Don't render if not supported
   if (!isSupported) {
+    if (compact) {
+      return null; // Don't show error in compact mode
+    }
     return (
       <div className="voice-input-unsupported">
         <p>🎤 Voice input not supported in this browser</p>
         <p>Try Chrome, Edge, or Safari for voice features</p>
       </div>
+    );
+  }
+
+  if (compact) {
+    // Compact mode - just the button
+    return (
+      <button
+        className={`voice-button-compact ${listening ? 'listening' : ''} ${!isMicrophoneAvailable ? 'disabled' : ''}`}
+        onClick={toggleListening}
+        disabled={!isMicrophoneAvailable}
+        title={listening ? 'Stop listening' : 'Start voice input'}
+      >
+        {listening ? (
+          <span className="pulse">🎤</span>
+        ) : (
+          '🎤'
+        )}
+      </button>
     );
   }
 
@@ -92,13 +113,13 @@ const VoiceInput = ({ onVoiceInput, isListening, setIsListening }) => {
           '🎤 Speak'
         )}
       </button>
-      
+
       {transcript && (
         <div className="transcript-preview">
           <p>"{transcript}"</p>
         </div>
       )}
-      
+
       {!isMicrophoneAvailable && (
         <p className="permission-message">
           Please allow microphone access to use voice input
@@ -145,6 +166,39 @@ const VoiceInput = ({ onVoiceInput, isListening, setIsListening }) => {
         }
         
         .voice-button.disabled {
+          background: #ccc;
+          cursor: not-allowed;
+          opacity: 0.6;
+        }
+
+        .voice-button-compact {
+          background: linear-gradient(135deg, #ff6b9d, #c44569);
+          border: none;
+          border-radius: 8px;
+          padding: 12px;
+          color: white;
+          font-size: 18px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 2px 8px rgba(255, 107, 157, 0.3);
+          min-width: 48px;
+          height: 48px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+
+        .voice-button-compact:hover:not(.disabled) {
+          transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(255, 107, 157, 0.4);
+        }
+
+        .voice-button-compact.listening {
+          background: linear-gradient(135deg, #ff4757, #ff3838);
+          animation: pulse-glow 1.5s infinite;
+        }
+
+        .voice-button-compact.disabled {
           background: #ccc;
           cursor: not-allowed;
           opacity: 0.6;

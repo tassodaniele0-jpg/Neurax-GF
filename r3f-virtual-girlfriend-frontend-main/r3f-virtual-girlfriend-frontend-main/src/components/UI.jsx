@@ -120,15 +120,6 @@ export const UI = ({ hidden, ...props }) => {
           </button>
         </div>
 
-        {/* Voice Input Component */}
-        <div className="pointer-events-auto max-w-screen-sm w-full mx-auto">
-          <VoiceInput
-            onVoiceInput={handleVoiceInput}
-            isListening={isListening}
-            setIsListening={setIsListening}
-          />
-        </div>
-
         <div className="flex items-center gap-2 pointer-events-auto max-w-screen-sm w-full mx-auto">
           <input
             className={`w-full placeholder:text-gray-800 placeholder:italic p-4 rounded-md bg-opacity-50 bg-white backdrop-blur-md ${
@@ -143,6 +134,15 @@ export const UI = ({ hidden, ...props }) => {
               }
             }}
           />
+
+          {/* Voice Input Button - Compact version */}
+          <VoiceInput
+            onVoiceInput={handleVoiceInput}
+            isListening={isListening}
+            setIsListening={setIsListening}
+            compact={true}
+          />
+
           <button
             disabled={loading || message || isListening}
             onClick={sendMessage}

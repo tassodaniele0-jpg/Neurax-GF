@@ -304,6 +304,22 @@ export function Avatar(props) {
 
   const group = useRef();
   const { actions, mixer } = useAnimations(animations, group);
+
+  // Suppress THREE.js PropertyBinding warnings (cosmetic only)
+  useEffect(() => {
+    const originalWarn = console.warn;
+    console.warn = (...args) => {
+      const message = args[0];
+      if (typeof message === 'string' && message.includes('THREE.PropertyBinding: Trying to update node for track')) {
+        return; // Suppress these specific warnings
+      }
+      originalWarn.apply(console, args);
+    };
+
+    return () => {
+      console.warn = originalWarn;
+    };
+  }, []);
   const [animation, setAnimation] = useState(
     animations.find((a) => a.name === "Idle") ? "Idle" : animations[0].name // Check if Idle animation exists otherwise use first animation
   );
