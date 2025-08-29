@@ -144,11 +144,18 @@ export function Avatar(props) {
     }
     // Safely set animation with fallback
     const animationName = message.animation || "Idle";
-    if (animations.find(a => a.name === animationName)) {
-      setAnimation(animationName);
-    } else {
-      console.warn(`Animation "${animationName}" not found, using Idle`);
-      setAnimation("Idle");
+    if (animations && animations.length > 0) {
+      if (animations.find(a => a.name === animationName)) {
+        setAnimation(animationName);
+      } else {
+        console.warn(`Animation "${animationName}" not found, using Idle`);
+        const idleAnimation = animations.find(a => a.name === "Idle");
+        if (idleAnimation) {
+          setAnimation("Idle");
+        } else if (animations[0]) {
+          setAnimation(animations[0].name);
+        }
+      }
     }
     setFacialExpression(message.facialExpression || "default");
     setLipsync(message.lipsync);
@@ -327,9 +334,19 @@ export function Avatar(props) {
       console.warn = originalWarn;
     };
   }, []);
-  const [animation, setAnimation] = useState(
-    animations.find((a) => a.name === "Idle") ? "Idle" : (animations[0]?.name || "Idle") // Check if Idle animation exists otherwise use first animation
-  );
+  const [animation, setAnimation] = useState("Idle"); // Start with safe default
+
+  // Initialize animation when animations are loaded
+  useEffect(() => {
+    if (animations && animations.length > 0) {
+      const idleAnimation = animations.find((a) => a.name === "Idle");
+      if (idleAnimation) {
+        setAnimation("Idle");
+      } else if (animations[0]) {
+        setAnimation(animations[0].name);
+      }
+    }
+  }, [animations]);
   useEffect(() => {
     if (actions && actions[animation] && mixer) {
       actions[animation]
