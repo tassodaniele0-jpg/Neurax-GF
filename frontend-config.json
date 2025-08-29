@@ -1,0 +1,16 @@
+{
+  "type": "static_site",
+  "name": "neurax-gf-frontend",
+  "ownerId": "tea-d2oc85ndiees73b959vg",
+  "repo": "https://github.com/tassodaniele0-jpg/Neurax-GF",
+  "branch": "main",
+  "rootDir": "r3f-virtual-girlfriend-frontend-main/r3f-virtual-girlfriend-frontend-main",
+  "buildCommand": "npm install && npm run build",
+  "publishPath": "dist",
+  "envVars": [
+    {
+      "key": "VITE_API_URL",
+      "value": "https://neurax-gf.onrender.com"
+    }
+  ]
+}

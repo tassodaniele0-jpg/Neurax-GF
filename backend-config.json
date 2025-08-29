@@ -1,0 +1,41 @@
+{
+  "type": "web_service",
+  "name": "neurax-gf-backend",
+  "ownerId": "tea-d2oc85ndiees73b959vg",
+  "repo": "https://github.com/tassodaniele0-jpg/Neurax-GF",
+  "branch": "main",
+  "serviceDetails": {
+    "runtime": "node",
+    "buildCommand": "npm install",
+    "startCommand": "node index.js",
+    "plan": "starter",
+    "region": "oregon",
+    "rootDir": "r3f-virtual-girlfriend-backend-main/r3f-virtual-girlfriend-backend-main",
+    "envSpecificDetails": {
+      "buildCommand": "npm install",
+      "startCommand": "node index.js"
+    }
+  },
+  "envVars": [
+    {
+      "key": "NODE_ENV",
+      "value": "production"
+    },
+    {
+      "key": "OPENROUTER_API_KEY", 
+      "value": "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"
+    },
+    {
+      "key": "ELEVEN_LABS_API_KEY",
+      "value": "sk_15e62c5ee2974e46e90ed214e5353b7485784974475b03b0"
+    },
+    {
+      "key": "OPENROUTER_MODEL",
+      "value": "deepseek/deepseek-r1:free"
+    },
+    {
+      "key": "ELEVENLABS_VOICE_ID",
+      "value": "21m00Tcm4TlvDq8ikWAM"
+    }
+  ]
+}

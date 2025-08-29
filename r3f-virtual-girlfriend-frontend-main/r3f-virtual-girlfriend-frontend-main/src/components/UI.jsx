@@ -1,16 +1,27 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useChat } from "../hooks/useChat";
 import { useBackendStatus } from "../hooks/useBackendStatus";
+import VoiceInput from "./VoiceInput";
 
 export const UI = ({ hidden, ...props }) => {
   const input = useRef();
   const { chat, loading, cameraZoomed, setCameraZoomed, message } = useChat();
   const { isOnline, model, hasOpenRouterKey, hasElevenLabsKey, error } = useBackendStatus();
+  const [isListening, setIsListening] = useState(false);
 
   const sendMessage = () => {
     const text = input.current.value;
     if (!loading && !message) {
       chat(text);
+      input.current.value = "";
+    }
+  };
+
+  const handleVoiceInput = (voiceText) => {
+    if (!loading && !message && voiceText.trim()) {
+      console.log('Sending voice message:', voiceText);
+      input.current.value = voiceText;
+      chat(voiceText);
       input.current.value = "";
     }
   };
@@ -108,11 +119,24 @@ export const UI = ({ hidden, ...props }) => {
             </svg>
           </button>
         </div>
+
+        {/* Voice Input Component */}
+        <div className="pointer-events-auto max-w-screen-sm w-full mx-auto">
+          <VoiceInput
+            onVoiceInput={handleVoiceInput}
+            isListening={isListening}
+            setIsListening={setIsListening}
+          />
+        </div>
+
         <div className="flex items-center gap-2 pointer-events-auto max-w-screen-sm w-full mx-auto">
           <input
-            className="w-full placeholder:text-gray-800 placeholder:italic p-4 rounded-md bg-opacity-50 bg-white backdrop-blur-md"
-            placeholder="Type a message..."
+            className={`w-full placeholder:text-gray-800 placeholder:italic p-4 rounded-md bg-opacity-50 bg-white backdrop-blur-md ${
+              isListening ? 'border-2 border-pink-400 bg-pink-50' : ''
+            }`}
+            placeholder={isListening ? "🎤 Listening..." : "Type a message or use voice..."}
             ref={input}
+            disabled={isListening}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
                 sendMessage();
@@ -120,10 +144,10 @@ export const UI = ({ hidden, ...props }) => {
             }}
           />
           <button
-            disabled={loading || message}
+            disabled={loading || message || isListening}
             onClick={sendMessage}
             className={`bg-pink-500 hover:bg-pink-600 text-white p-4 px-10 font-semibold uppercase rounded-md ${
-              loading || message ? "cursor-not-allowed opacity-30" : ""
+              loading || message || isListening ? "cursor-not-allowed opacity-30" : ""
             }`}
           >
             Send
