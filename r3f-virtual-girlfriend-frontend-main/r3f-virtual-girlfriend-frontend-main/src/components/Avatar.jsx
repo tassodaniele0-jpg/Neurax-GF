@@ -142,8 +142,15 @@ export function Avatar(props) {
       setAnimation("Idle");
       return;
     }
-    setAnimation(message.animation);
-    setFacialExpression(message.facialExpression);
+    // Safely set animation with fallback
+    const animationName = message.animation || "Idle";
+    if (animations.find(a => a.name === animationName)) {
+      setAnimation(animationName);
+    } else {
+      console.warn(`Animation "${animationName}" not found, using Idle`);
+      setAnimation("Idle");
+    }
+    setFacialExpression(message.facialExpression || "default");
     setLipsync(message.lipsync);
 
     // Handle audio - works with or without audio data
@@ -321,15 +328,25 @@ export function Avatar(props) {
     };
   }, []);
   const [animation, setAnimation] = useState(
-    animations.find((a) => a.name === "Idle") ? "Idle" : animations[0].name // Check if Idle animation exists otherwise use first animation
+    animations.find((a) => a.name === "Idle") ? "Idle" : (animations[0]?.name || "Idle") // Check if Idle animation exists otherwise use first animation
   );
   useEffect(() => {
-    actions[animation]
-      .reset()
-      .fadeIn(mixer.stats.actions.inUse === 0 ? 0 : 0.5)
-      .play();
-    return () => actions[animation].fadeOut(0.5);
-  }, [animation]);
+    if (actions && actions[animation] && mixer) {
+      actions[animation]
+        .reset()
+        .fadeIn(mixer.stats?.actions?.inUse === 0 ? 0 : 0.5)
+        .play();
+    }
+    return () => {
+      if (actions && actions[animation]) {
+        try {
+          actions[animation].fadeOut(0.5);
+        } catch (error) {
+          console.warn('Error fading out animation:', error);
+        }
+      }
+    };
+  }, [animation, actions, mixer]);
 
   const lerpMorphTarget = (target, value, speed = 0.1) => {
     scene.traverse((child) => {
