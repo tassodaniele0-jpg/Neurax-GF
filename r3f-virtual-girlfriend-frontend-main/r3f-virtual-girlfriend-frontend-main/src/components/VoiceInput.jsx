@@ -4,6 +4,7 @@ import SpeechRecognition, { useSpeechRecognition } from 'react-speech-recognitio
 const VoiceInput = ({ onVoiceInput, isListening, setIsListening }) => {
   const [isSupported, setIsSupported] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
+  const [error, setError] = useState(null);
   
   const {
     transcript,
@@ -16,14 +17,10 @@ const VoiceInput = ({ onVoiceInput, isListening, setIsListening }) => {
   useEffect(() => {
     // Check if speech recognition is supported
     setIsSupported(browserSupportsSpeechRecognition);
-    
-    // Check microphone permission
+
+    // Check microphone availability (this is handled by the hook)
     if (browserSupportsSpeechRecognition) {
-      SpeechRecognition.getRecognition().then(() => {
-        setHasPermission(true);
-      }).catch(() => {
-        setHasPermission(false);
-      });
+      setHasPermission(true); // We'll check permission when user tries to use it
     }
   }, [browserSupportsSpeechRecognition]);
 
@@ -41,16 +38,19 @@ const VoiceInput = ({ onVoiceInput, isListening, setIsListening }) => {
     }
   }, [transcript, listening, onVoiceInput, resetTranscript]);
 
-  const startListening = async () => {
+  const startListening = () => {
     try {
+      setError(null);
       // Configure speech recognition for optimal girlfriend chat experience
-      await SpeechRecognition.startListening({
+      SpeechRecognition.startListening({
         continuous: false, // Stop after user finishes speaking
         language: 'en-US', // Primary language
         interimResults: false // Only final results
       });
     } catch (error) {
       console.error('Error starting speech recognition:', error);
+      setError('Failed to start voice recognition. Please check microphone permissions.');
+      setHasPermission(false);
     }
   };
 
@@ -102,6 +102,12 @@ const VoiceInput = ({ onVoiceInput, isListening, setIsListening }) => {
       {!isMicrophoneAvailable && (
         <p className="permission-message">
           Please allow microphone access to use voice input
+        </p>
+      )}
+
+      {error && (
+        <p className="error-message">
+          {error}
         </p>
       )}
       
@@ -175,6 +181,17 @@ const VoiceInput = ({ onVoiceInput, isListening, setIsListening }) => {
           color: #666;
           text-align: center;
           max-width: 250px;
+        }
+
+        .error-message {
+          font-size: 12px;
+          color: #dc3545;
+          text-align: center;
+          max-width: 250px;
+          background: rgba(220, 53, 69, 0.1);
+          padding: 8px 12px;
+          border-radius: 8px;
+          border: 1px solid rgba(220, 53, 69, 0.3);
         }
         
         .voice-input-unsupported {
